@@ -46,7 +46,7 @@ GSC <- function(dd) {
 
 # Tests -------------------------------------------------------------------
 
-if (test <- TRUE) { # Change to TRUE to launch testing code
+if (test <- FALSE) { # Change to TRUE to launch testing code
   
   # This is the actual example of the paper. The reader should be warned that the results in the paper are
   # wrong, due to some imprecision.
