@@ -1,0 +1,10 @@
+*.Rproj*
+.Rhistory
+.RData
+*.pdf
+
+**/.Rproj*/
+.Rproj.user
+
+.DS_Store
+
