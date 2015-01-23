@@ -6,7 +6,8 @@
 # lower the weights.
 # The initial description of the implementation can be found here: https://pdf.yt/d/Sx3jMbr8vANgxAej/download
 # As per request for: http://thinklab.org/p/rephetio/seeking-an-open-source-implementation-of-the-gerstein-sonnhammer-chothia-algorithm/25
-
+#
+# Copyright Antoine Lizee 2015/01 antoine.lizee@gmail.com
 
 # Algorithm ---------------------------------------------------------------------
 
