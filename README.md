@@ -8,4 +8,4 @@ The algorithm is described in the paper's appendix titled, "A Method to Weight P
 
 The algorithm weights the leaves of a [dendrogram](https://en.wikipedia.org/wiki/Dendrogram) based on their underrepresentation.
 
-Run the algorithm with the `GSC()` function from the `GSC.R` file. The single input to `GSC()` is an [R dendrogram object](https://stat.ethz.ch/R-manual/R-patched/library/stats/html/dendrogram.html).
+Run the algorithm with the `GSC()` function from the `GSC.R` file. The single input to `GSC()` is a [dendrogram object](https://stat.ethz.ch/R-manual/R-patched/library/stats/html/dendrogram.html).
