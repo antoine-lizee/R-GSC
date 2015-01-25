@@ -22,8 +22,8 @@ getGSCs <- function(ddchild, parentHeight) {
     GSCs <- parentHeight
     names(GSCs) <- ddcAttrs$label
   } else { # we have a tree
-    gscs <- GSCrec(ddchild)
-    GSCs <- gscs + gscs * (parentHeight-ddcAttrs$height) / sum(gscs)
+    gscs <- GSCrec(ddchild) + .Machine$double.eps
+    GSCs <- gscs + gscs * (parentHeight-ddcAttrs$height) / sum(gscs) - .Machine$double.eps
   }
   GSCs
 }
@@ -47,7 +47,7 @@ GSC <- function(dd) {
 
 # Tests -------------------------------------------------------------------
 
-if (test <- FALSE) { # Change to TRUE to launch testing code
+if (test <- TRUE) { # Change to TRUE to launch testing code
   
   # This is the actual example of the paper. The reader should be warned that the results in the paper are
   # wrong, due to some imprecision.
@@ -67,5 +67,5 @@ if (test <- FALSE) { # Change to TRUE to launch testing code
   ddGSCs <- GSC(dd) #compute the weights
   hc$labels[hc$order] <- paste(names(ddGSCs), sprintf("%.1f", ddGSCs), sep = " - ") #add them to the label names
   plot(as.dendrogram(hc)) #plot them to have a look.
-   
+    
 }
