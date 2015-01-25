@@ -45,4 +45,10 @@ cbind(ttt1,ttt2) # The weigths at the singularity (ttt1) are close to the weight
 
 # recursivity limit problem -----------------------------------------------
 
-ttt <- UnderrepresentationWeight(se.mat[,1:500])
+library(microbenchmark)
+library(ggplot2)
+
+mbtimes <- sapply(1:12 * 100, function(x) microbenchmark(UnderrepresentationWeight(se.mat[,1:x]), times = 4))
+dfbench <- do.call(rbind, lapply(1:dim(mbtimes)[2], function(x) data.frame(n = x * 100, time = mbtimes[[2,x]])))
+qplot(data = dfbench, x = n, y = time, geom = c("point", "smooth"), method = "lm")
+
