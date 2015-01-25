@@ -3,8 +3,11 @@ load("se.mat.RData")
 
 UnderrepresentationWeight <- function(mat) {
   # Returns underrepresentation weight for each column
+  cat ("# Computing distance matrix...\n")
   col.dist <- stats::dist(t(mat), method = 'binary')
+  cat ("# Hierarchical clustering...\n")
   col.clust <- hclust(col.dist, method = 'ward')
+  cat ("# Computing the weights...\n")
   col.dendro <- as.dendrogram(col.clust)
   plot(col.dendro)
   GSC(col.dendro)
@@ -42,4 +45,4 @@ cbind(ttt1,ttt2) # The weigths at the singularity (ttt1) are close to the weight
 
 # recursivity limit problem -----------------------------------------------
 
-
+ttt <- UnderrepresentationWeight(se.mat[,1:500])
