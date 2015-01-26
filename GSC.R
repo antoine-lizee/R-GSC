@@ -37,16 +37,39 @@ GSCrec <- function(dd) {
 
 # Main function to do some checks + normalize the weights at the end.
 GSC <- function(dd) {
+  
+  # Check the class
   if(class(dd) != "dendrogram") {
     stop("Argument should be a dendrogram object. Please use as.dendrogram()")
   }
-  GSCs <- GSCrec(dd)
-  return(GSCs / sum(GSCs) * length(GSCs))
+  
+  # Check the number of elements and adjust the max recursive depth accordingly.
+  # Make sure that the dendrogram bigger than it says:
+  nElem <- as.integer(attr(dd, "members"))
+  nElem.size <- (object.size(dd) + 320) / 1224 # cf dhimmel_bugs_test for determining this.
+  if ( length(nElem) == 0 || is.na(nElem) || nElem < nElem.size /2) { 
+    warning("dendrogram seems bigger than the static 'members' attribute of the root node says. Guessing...")
+    nElem <- c(round(nElem.size * 1.2))
+  }
+  
+  # Set the options to increase the max depth
+  opt.old <- options("expressions")[[1]]
+  opt.new <- nElem * 2 + 500 # O(log(nElem)), worst case nElem -> nElem * 2 we're large.
+  if (opt.new > opt.old)
+    options("expressions" = opt.new)
+  
+  # Launch the rest inside a tryCatch to make sure we reset the options.
+  tryCatch( {
+    GSCs <- GSCrec(dd)
+    return(GSCs / sum(GSCs) * length(GSCs))
+  }, 
+  finally = {options("expressions" = opt.old)}
+  )
 }
 
 # Tests -------------------------------------------------------------------
 
-if (test <- FALSE) { # Change to TRUE to launch testing code
+if (test <- TRUE) { # Change to TRUE to launch testing code
   
   # This is the actual example of the paper. The reader should be warned that the results in the paper are
   # wrong, due to some imprecision.
@@ -66,5 +89,5 @@ if (test <- FALSE) { # Change to TRUE to launch testing code
   ddGSCs <- GSC(dd) #compute the weights
   hc$labels[hc$order] <- paste(names(ddGSCs), sprintf("%.1f", ddGSCs), sep = " - ") #add them to the label names
   plot(as.dendrogram(hc)) #plot them to have a look.
-    
+  
 }

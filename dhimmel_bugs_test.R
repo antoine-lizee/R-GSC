@@ -52,37 +52,51 @@ cbind(ttt1,ttt2) # The weigths at the singularity (ttt1) are close to the weight
 library(microbenchmark)
 library(ggplot2)
 
-mbtimes <- sapply(1:15 * 200, function(x) microbenchmark({ cat("# n = ", x*200, "\n"); UnderrepresentationWeight(se.mat[,1:x])}, times = 3))
-mbtimes2 <- sapply(1:15 * 200, function(x) microbenchmark({ cat("# n = ", x*200, "\n"); UnderrepresentationWeight(se.mat[,1:x], "GSC2")}, times = 3))
+createRandomDendrogram <- function(n = 300) {
+  rmat <- matrix(nc = n, nr = n, runif(n^2, 0, 1))
+  col.dist <- as.dist(rmat + t(rmat))
+  col.hc <- hclust(col.dist, method = "ward.D2")
+  as.dendrogram(col.hc)
+}
+
+mbtimes <- sapply(1:15 * 200, function(x) {
+  dd <- createRandomDendrogram(x)
+  microbenchmark({ cat("# n = ", x, "\n"); GSC(dd)}, times = 3)
+  })
+mbtimes2 <- sapply(1:15 * 200, function(x) {
+  dd <- createRandomDendrogram(x)
+  microbenchmark({ cat("# n = ", x, "\n"); GSC(dd)}, times = 3)
+})
 dfbench <- rbind(
   data.frame(type = "normal" , 
-             do.call(rbind, lapply(1:dim(mbtimes)[2], function(x) data.frame(n = x * 200, time = mbtimes[[2,x]]/10e9)))),
+             do.call(rbind, lapply(1:dim(mbtimes)[2], function(x) data.frame(n = x * 200, time = mbtimes[[2,x]]/10e6)))),
   data.frame(type = "verbose",
-             do.call(rbind, lapply(1:dim(mbtimes)[2], function(x) data.frame(n = x * 200, time = mbtimes2[[2,x]]/10e9)))))
+             do.call(rbind, lapply(1:dim(mbtimes)[2], function(x) data.frame(n = x * 200, time = mbtimes2[[2,x]]/10e6)))))
 pdf("profiling.pdf")
-qplot(data = dfbench, x = n, y = time / 10e9, color = type, shape = I(19), alpha = I(0.5), geom = c("point", "smooth"), 
-      title = "profiling of the GSC algo, two versions", ylab = "time (s)", xlab = "elements") +
+qplot(data = dfbench, x = n, y = time, color = type, shape = I(19), alpha = I(0.5), geom = c("point", "smooth"), 
+      title = "profiling of the GSC algo, two versions", ylab = "time (ms)", xlab = "elements", method = "lm") +
   theme_bw()
 dev.off()
 
-(tt.exp <- nls(time/10e9 ~ ca*exp(cb*n) + cc*n + cd, data = dfbench,
-          start = list(ca = 0.1, cb = 0.001, cc = 0.1, cd = 0.1),
-          trace = T))
-(tt.square <- nls(time/10e9 ~ ca*n^2 + cc*n + cd, data = dfbench,
-              start = list(ca = 0.1, cc = 0.1, cd = 0.1),
-              trace = T))
-(ttlm.square <- lm(time/10e9 ~ I(n^2) + n , data = dfbench))
-dfbench$time.exp <- predict(tt.exp)
-dfbench$time.square <- predict(ttlm.square)
-
-pdf("profiling2.pdf")
-qplot(data = dfbench, x = n, y = time/10e9, shape = I(19), alpha = I(0.5), geom = c("point"), 
-      title = "profiling of the GSC algo with fit on top", ylab = "time (s)", xlab = "elements") +
-  geom_line(aes(x = n, y = time.square), color = "red")
-dev.off()
 
 
+# recursion check ----------------------------------------------------------
 
-# recursion test ----------------------------------------------------------
+# Get the linear relationship between the size of the dendrogram and n, its number of leaves.
+n <- 1:30 * 50
+size <- sapply(n, function(x) object.size(createRandomDendrogram(x)))
+qplot(n, size, geom = c("point", "smooth"))
+lm(size ~ n)
 
+# Test the new dude.
+# Create a bid dendrogram
+bigDendo <- do.call(merge, lapply(rep(1000, 5), createRandomDendrogram))
+print(bigDendo)
+# artificially put the number of allowed exressions low, retaining the initial pre-testing parameter.
+print(init.expr <- options("expressions" = 50)[[1]])
+# execute the GSC algo
+ttt <- GSC(bigDendo)
+str(ttt)
+# reset the option while checking it was left untouched by the algo.
+print(options("expressions" = init.expr))
 
