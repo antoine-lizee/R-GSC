@@ -2,8 +2,8 @@ library(pheatmap)
 pheatmap.blank <- function(...) pheatmap(cluster_rows = F, cluster_cols = F, show_rownames = F, ...)
 
 source("GSC.R")
-source("GSC2.R")
-load("se.mat.RData")
+source("tests/GSC2.R")
+load("tests/se.mat.RData")
 
 UnderrepresentationWeight <- function(mat, functionName = "GSC") {
   # Returns underrepresentation weight for each column
@@ -72,7 +72,7 @@ dfbench <- rbind(
              do.call(rbind, lapply(1:dim(mbtimes)[2], function(x) data.frame(n = x * 200, time = mbtimes[[2,x]]/10e6)))),
   data.frame(type = "verbose",
              do.call(rbind, lapply(1:dim(mbtimes)[2], function(x) data.frame(n = x * 200, time = mbtimes2[[2,x]]/10e6)))))
-pdf("profiling.pdf")
+pdf("tests/profiling.pdf")
 qplot(data = dfbench, x = n, y = time, color = type, shape = I(19), alpha = I(0.5), geom = c("point", "smooth"), 
       title = "profiling of the GSC algo, two versions", ylab = "time (ms)", xlab = "elements", method = "lm") +
   theme_bw()
