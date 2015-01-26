@@ -9,10 +9,9 @@ UnderrepresentationWeight <- function(mat, functionName = "GSC") {
   cat ("# Computing distance matrix...\n")
   col.dist <- stats::dist(t(mat), method = 'binary')
   cat ("# Hierarchical clustering...\n")
-  col.clust <- hclust(col.dist, method = 'ward')
+  col.clust <- hclust(col.dist, method = 'ward.D2') # change ward.D2 to ward if you;re running an earlier version than 3.0 of R
   cat ("# Computing the weights...\n")
   col.dendro <- as.dendrogram(col.clust)
-  plot(col.dendro)
   get(functionName)(col.dendro)
 }
 
@@ -52,8 +51,8 @@ cbind(ttt1,ttt2) # The weigths at the singularity (ttt1) are close to the weight
 library(microbenchmark)
 library(ggplot2)
 
-mbtimes <- sapply(1:15 * 200, function(x) microbenchmark(UnderrepresentationWeight(se.mat[,1:x]), times = 3))
-mbtimes2 <- sapply(1:15 * 200, function(x) microbenchmark(UnderrepresentationWeight(se.mat[,1:x], "GSC2"), times = 3))
+mbtimes <- sapply(1:15 * 200, function(x) microbenchmark({ cat("# n = ", x*200, "\n"); UnderrepresentationWeight(se.mat[,1:x])}, times = 3))
+mbtimes2 <- sapply(1:15 * 200, function(x) microbenchmark({ cat("# n = ", x*200, "\n"); UnderrepresentationWeight(se.mat[,1:x], "GSC2")}, times = 3))
 dfbench <- rbind(
   data.frame(type = "normal" , 
              do.call(rbind, lapply(1:dim(mbtimes)[2], function(x) data.frame(n = x * 200, time = mbtimes[[2,x]])))),
