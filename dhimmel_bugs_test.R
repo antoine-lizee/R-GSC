@@ -1,7 +1,8 @@
 library(pheatmap)
 pheatmap.blank <- function(...) pheatmap(cluster_rows = F, cluster_cols = F, show_rownames = F, ...)
 
-source ("GSC.R")
+source("GSC.R")
+source("GSC2.R")
 load("se.mat.RData")
 
 UnderrepresentationWeight <- function(mat, functionName = "GSC") {
@@ -22,7 +23,7 @@ UnderrepresentationWeight <- function(mat, functionName = "GSC") {
 UnderrepresentationWeight(se.mat[, 49:84]) # Minimum reproducible example
 mat <- se.mat[,c(49:60,84)] # Let's stripdown the number of column
 col.dist <- stats::dist(t(mat), method = 'binary')
-col.clust <- hclust(col.dist, method = 'ward')
+col.clust <- hclust(col.dist, method = 'ward.D2')
 col.dendro <- as.dendrogram(col.clust)
 plot(col.dendro)
 pheatmap(1-col.dist, clustering_distance_rows = col.dist, clustering_distance_cols = col.dist)
@@ -46,7 +47,7 @@ cbind(ttt1,ttt2) # The weigths at the singularity (ttt1) are close to the weight
 
 
 
-# recursivity limit problem -----------------------------------------------
+# profiling -----------------------------------------------
 
 library(microbenchmark)
 library(ggplot2)
@@ -55,8 +56,33 @@ mbtimes <- sapply(1:15 * 200, function(x) microbenchmark({ cat("# n = ", x*200, 
 mbtimes2 <- sapply(1:15 * 200, function(x) microbenchmark({ cat("# n = ", x*200, "\n"); UnderrepresentationWeight(se.mat[,1:x], "GSC2")}, times = 3))
 dfbench <- rbind(
   data.frame(type = "normal" , 
-             do.call(rbind, lapply(1:dim(mbtimes)[2], function(x) data.frame(n = x * 200, time = mbtimes[[2,x]])))),
+             do.call(rbind, lapply(1:dim(mbtimes)[2], function(x) data.frame(n = x * 200, time = mbtimes[[2,x]]/10e9)))),
   data.frame(type = "verbose",
-             do.call(rbind, lapply(1:dim(mbtimes)[2], function(x) data.frame(n = x * 200, time = mbtimes2[[2,x]])))))
-qplot(data = dfbench, x = n, y = time, color = type, geom = c("point", "smooth"), title = "profiling of the GSC algo")
+             do.call(rbind, lapply(1:dim(mbtimes)[2], function(x) data.frame(n = x * 200, time = mbtimes2[[2,x]]/10e9)))))
+pdf("profiling.pdf")
+qplot(data = dfbench, x = n, y = time / 10e9, color = type, shape = I(19), alpha = I(0.5), geom = c("point", "smooth"), 
+      title = "profiling of the GSC algo, two versions", ylab = "time (s)", xlab = "elements") +
+  theme_bw()
+dev.off()
+
+(tt.exp <- nls(time/10e9 ~ ca*exp(cb*n) + cc*n + cd, data = dfbench,
+          start = list(ca = 0.1, cb = 0.001, cc = 0.1, cd = 0.1),
+          trace = T))
+(tt.square <- nls(time/10e9 ~ ca*n^2 + cc*n + cd, data = dfbench,
+              start = list(ca = 0.1, cc = 0.1, cd = 0.1),
+              trace = T))
+(ttlm.square <- lm(time/10e9 ~ I(n^2) + n , data = dfbench))
+dfbench$time.exp <- predict(tt.exp)
+dfbench$time.square <- predict(ttlm.square)
+
+pdf("profiling2.pdf")
+qplot(data = dfbench, x = n, y = time/10e9, shape = I(19), alpha = I(0.5), geom = c("point"), 
+      title = "profiling of the GSC algo with fit on top", ylab = "time (s)", xlab = "elements") +
+  geom_line(aes(x = n, y = time.square), color = "red")
+dev.off()
+
+
+
+# recursion test ----------------------------------------------------------
+
 
