@@ -1,3 +1,11 @@
+# This is the script investigating the first problems detected by dhimmel when he first used the scripts.
+# The problems have been solved, but this file is still relevant to explain the problems & test.
+#
+# Copyright Antoine Lizee 01/2015 antoine.lizee@gmail.com 
+
+
+# Initialization ----------------------------------------------------------
+
 library(pheatmap)
 pheatmap.blank <- function(...) pheatmap(cluster_rows = F, cluster_cols = F, show_rownames = F, ...)
 
@@ -72,7 +80,7 @@ dfbench <- rbind(
              do.call(rbind, lapply(1:dim(mbtimes)[2], function(x) data.frame(n = x * 200, time = mbtimes[[2,x]]/10e6)))),
   data.frame(type = "verbose",
              do.call(rbind, lapply(1:dim(mbtimes)[2], function(x) data.frame(n = x * 200, time = mbtimes2[[2,x]]/10e6)))))
-pdf("tests/profiling.pdf")
+pdf("test/profiling.pdf")
 qplot(data = dfbench, x = n, y = time, color = type, shape = I(19), alpha = I(0.5), geom = c("point", "smooth"), 
       title = "profiling of the GSC algo, two versions", ylab = "time (ms)", xlab = "elements", method = "lm") +
   theme_bw()
