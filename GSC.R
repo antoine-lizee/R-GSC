@@ -10,10 +10,11 @@
 #
 # Copyright Antoine Lizee 2015/01 antoine.lizee@gmail.com
 
-# getGSCs is a handler for the main recursve funtion below. It actually does all the work:
-# It applies the main function to the child tree and does the main weighing computation,
-# or create the right data structure (and check consistency) for a leaf.
 getGSCs <- function(ddchild, parentHeight) {
+  # getGSCs is a handler for the main recursve funtion below. It actually does all the work:
+  # It applies the main function to the child tree and does the main weighing computation,
+  # or create the right data structure (and check consistency) for a leaf.
+  
   ddcAttrs <- attributes(ddchild)
   if (ddcAttrs$members == 1) { # we have a leaf.
     stopifnot(ddcAttrs$height == 0, ddcAttrs$leaf) # leaf should be at height 0, and have the leaf signature
@@ -27,14 +28,16 @@ getGSCs <- function(ddchild, parentHeight) {
   GSCs
 }
 
-# Main recursive function
 GSCrec <- function(dd) {
+  # Main recursive function
+  
   h0 <- attr(dd, "height")
   return(c(getGSCs(dd[[1]], h0), getGSCs(dd[[2]], h0)))
 }
 
-# Main function to do some checks + normalize the weights at the end.
+
 GSC <- function(dd) {
+  # Main function to do some checks + normalize the weights at the end.
   
   # Check the class
   if(class(dd) != "dendrogram") {
