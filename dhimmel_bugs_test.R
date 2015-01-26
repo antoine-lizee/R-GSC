@@ -1,7 +1,10 @@
+library(pheatmap)
+pheatmap.blank <- function(...) pheatmap(cluster_rows = F, cluster_cols = F, show_rownames = F, ...)
+
 source ("GSC.R")
 load("se.mat.RData")
 
-UnderrepresentationWeight <- function(mat) {
+UnderrepresentationWeight <- function(mat, functionName = "GSC") {
   # Returns underrepresentation weight for each column
   cat ("# Computing distance matrix...\n")
   col.dist <- stats::dist(t(mat), method = 'binary')
@@ -10,8 +13,9 @@ UnderrepresentationWeight <- function(mat) {
   cat ("# Computing the weights...\n")
   col.dendro <- as.dendrogram(col.clust)
   plot(col.dendro)
-  GSC(col.dendro)
+  get(functionName)(col.dendro)
 }
+
 
 
 # Nan Problem -------------------------------------------------------------
@@ -30,7 +34,7 @@ any(apply(se.mat[,c(49,84)], 1, diff) != 0) # Same vector... -> distance of 0 ->
 # distance == 1 when the distance is computed with method = 'binary' with everybody else for these 3 guys (in a reduced matrix at least).
 # This is gracefully handled by the algorithm, the weights are just equals. (because the nodes are at exactly the same heigths in the dendrogram)
 mat3 <- se.mat[,colnames(se.mat) %in% paste0("C000", c(2880, 2624, 2631))]
-pheatmap(mat3) #It occurs in this case because each of these guys have too few, rare positives, so the distance == 1 with everybody else when using the binary distance. (no positive in common)
+pheatmap.blank(mat3) #It occurs in this case because each of these guys have too few, rare positives, so the distance == 1 with everybody else when using the binary distance. (no positive in common)
 
 # Check the NaN fix:
 mat1 <- mat
@@ -48,7 +52,12 @@ cbind(ttt1,ttt2) # The weigths at the singularity (ttt1) are close to the weight
 library(microbenchmark)
 library(ggplot2)
 
-mbtimes <- sapply(1:12 * 100, function(x) microbenchmark(UnderrepresentationWeight(se.mat[,1:x]), times = 4))
-dfbench <- do.call(rbind, lapply(1:dim(mbtimes)[2], function(x) data.frame(n = x * 100, time = mbtimes[[2,x]])))
-qplot(data = dfbench, x = n, y = time, geom = c("point", "smooth"), method = "lm")
+mbtimes <- sapply(1:15 * 200, function(x) microbenchmark(UnderrepresentationWeight(se.mat[,1:x]), times = 3))
+mbtimes2 <- sapply(1:15 * 200, function(x) microbenchmark(UnderrepresentationWeight(se.mat[,1:x], "GSC2"), times = 3))
+dfbench <- rbind(
+  data.frame(type = "normal" , 
+             do.call(rbind, lapply(1:dim(mbtimes)[2], function(x) data.frame(n = x * 200, time = mbtimes[[2,x]])))),
+  data.frame(type = "verbose",
+             do.call(rbind, lapply(1:dim(mbtimes)[2], function(x) data.frame(n = x * 200, time = mbtimes2[[2,x]])))))
+qplot(data = dfbench, x = n, y = time, color = type, geom = c("point", "smooth"), title = "profiling of the GSC algo")
 

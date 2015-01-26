@@ -9,6 +9,7 @@
 #
 # Copyright Antoine Lizee 2015/01 antoine.lizee@gmail.com
 
+
 # Algorithm ---------------------------------------------------------------------
 
 # getGSCs is a handler for the main recursve funtion below. It actually does all the work:
@@ -44,6 +45,46 @@ GSC <- function(dd) {
 }
 
 
+#####
+
+GSCrec2 <- function(dd) {
+  h0 <- attr(dd, "height")
+  
+  ddcAttrs <- attributes(dd[[1]])
+  if (ddcAttrs$members == 1) { # we have a leaf.
+    stopifnot(ddcAttrs$height == 0, ddcAttrs$leaf) # leaf should be at height 0, and have the leaf signature
+    # Create the coeffs
+    GSCs1 <- h0
+    names(GSCs1) <- ddcAttrs$label
+  } else { # we have a tree
+    gscs <- GSCrec(dd[[1]]) + .Machine$double.eps
+    GSCs1 <- gscs + gscs * (h0-ddcAttrs$height) / sum(gscs) - .Machine$double.eps
+  }
+  
+  ddcAttrs <- attributes(dd[[2]])
+  if (ddcAttrs$members == 1) { # we have a leaf.
+    stopifnot(ddcAttrs$height == 0, ddcAttrs$leaf) # leaf should be at height 0, and have the leaf signature
+    # Create the coeffs
+    GSCs2 <- h0
+    names(GSCs2) <- ddcAttrs$label
+  } else { # we have a tree
+    gscs <- GSCrec(dd[[2]]) + .Machine$double.eps
+    GSCs2 <- gscs + gscs * (h0-ddcAttrs$height) / sum(gscs) - .Machine$double.eps
+  }
+  
+  return(c(GSCs1, GSCs2))
+}
+
+# Main function to do some checks + normalize the weights at the end.
+GSC2 <- function(dd) {
+  if(class(dd) != "dendrogram") {
+    stop("Argument should be a dendrogram object. Please use as.dendrogram()")
+  }
+  GSCs <- GSCrec2(dd)
+  return(GSCs / sum(GSCs) * length(GSCs))
+}
+
+
 
 # Tests -------------------------------------------------------------------
 
@@ -59,6 +100,7 @@ if (test <- TRUE) { # Change to TRUE to launch testing code
   testdend <- as.dendrogram(testhc)
   plot(testdend)
   print(GSC(testdend))
+  print(GSC2(testdend))
   
   # A more real-looking use-case:
   hc <- hclust(dist(mtcars))
