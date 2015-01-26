@@ -2,8 +2,8 @@ library(pheatmap)
 pheatmap.blank <- function(...) pheatmap(cluster_rows = F, cluster_cols = F, show_rownames = F, ...)
 
 source("GSC.R")
-source("tests/GSC2.R")
-load("tests/se.mat.RData")
+source("test/GSC2.R")
+load("test/se.mat.RData")
 
 UnderrepresentationWeight <- function(mat, functionName = "GSC") {
   # Returns underrepresentation weight for each column
