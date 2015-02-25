@@ -45,7 +45,7 @@ GSC <- function(dd) {
   }
   
   # Check the number of elements and adjust the max recursive depth accordingly.
-  # Make sure that the dendrogram bigger than it says:
+  # Make sure that the dendrogram is not bigger than it says:
   nElem <- as.integer(attr(dd, "members"))
   nElem.size <- (object.size(dd) + 320) / 1224 # cf dhimmel_bugs_test for determining this.
   if ( length(nElem) == 0 || is.na(nElem) || nElem < nElem.size /2) { 
